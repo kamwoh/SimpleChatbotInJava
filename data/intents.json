@@ -1,0 +1,72 @@
+{
+  "intents": {
+    "greet": {
+      "responses": [
+        "hi bro",
+        "sup bro",
+        "how can I help you bro"
+      ],
+      "command": ""
+    },
+    "greeting": {
+      "responses": [
+        "I am fine bro",
+        "love you bro"
+      ],
+      "command": ""
+    },
+    "goodbye": {
+      "responses": [
+        "goodbye my bro",
+        "nice to meet you bro, bye",
+        "bye",
+        "b...byeeeeeeee"
+      ],
+      "command": ""
+    },
+    "today_date": {
+      "responses": [],
+      "command": "get_today_date"
+    },
+    "creator": {
+      "responses": [
+        "kamwoh is my master"
+      ],
+      "command": ""
+    },
+    "chatbot_name": {
+      "responses": [
+        "yo bro, my name is Sunny",
+        "I am Sunny, who always shine like a Sun bro",
+        "My master named me Sunny bro"
+      ],
+      "command": ""
+    },
+    "chatbot_purpose": {
+      "responses": [
+        "I am your personal brosistant to take in your complaints and send to my boss bro",
+        "bro, I am a complaints receiver, I receive complaints and tell my boss"
+      ],
+      "command": ""
+    },
+    "chatbot_created_time": {
+      "responses": [
+        "today lo",
+        "I don't know, I woke up and see you sending message to me bro"
+      ],
+      "command": ""
+    },
+    "unknown": {
+      "responses": [
+        "Sorry bro I dont understand",
+        "Don't break me bro",
+        "Can you ask another question? my bro"
+      ],
+      "command": ""
+    },
+    "mathematics": {
+      "responses": [],
+      "command": "solve_math"
+    }
+  }
+}
