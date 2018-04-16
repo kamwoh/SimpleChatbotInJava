@@ -83,19 +83,28 @@ public class Engine {
     }
 
     public static boolean isQuestion(String[] tokenized) {
-        for (int i = 0; i < tokenized.length; i++) {
-            boolean isWhat = tokenized[i].equalsIgnoreCase("what");
-            boolean isWho = isWhat || tokenized[i].equalsIgnoreCase("who");
-            boolean isWhen = isWho || tokenized[i].equalsIgnoreCase("when");
-            boolean isWhere = isWhen || tokenized[i].equalsIgnoreCase("where");
-            boolean isWhy = isWhere || tokenized[i].equalsIgnoreCase("why");
-            boolean isHow = isWhy || tokenized[i].equalsIgnoreCase("how");
-            boolean containQuestionMark = isHow || tokenized[i].equalsIgnoreCase("?");
+//        for (int i = 0; i < tokenized.length; i++) {
+        int i = 0;
+        boolean isWhat = tokenized[i].equalsIgnoreCase("what");
+        boolean isWho = isWhat || tokenized[i].equalsIgnoreCase("who");
+        boolean isWhen = isWho || tokenized[i].equalsIgnoreCase("when");
+        boolean isWhere = isWhen || tokenized[i].equalsIgnoreCase("where");
+        boolean isWhy = isWhere || tokenized[i].equalsIgnoreCase("why");
+        boolean isHow = isWhy || tokenized[i].equalsIgnoreCase("how");
+        boolean containQuestionMark = isHow || tokenized[tokenized.length - 1].equalsIgnoreCase("?");
 
-            if (containQuestionMark)
-                return true;
-        }
+        return containQuestionMark;
+//        if (containQuestionMark)
+//            return true;
+//
+//        return false;
+    }
 
-        return false;
+    public static boolean isYesNoQuestion(String[] tokenized) {
+        int i = 0;
+        boolean isIs = tokenized[i].equalsIgnoreCase("is");
+        boolean isAre = isIs || tokenized[i].equalsIgnoreCase("are");
+
+        return isAre;
     }
 }

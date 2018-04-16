@@ -19,7 +19,8 @@ public class Chatbot {
         String[] tokenized = Engine.tokenize(message);
         POS[] posTags = posNeuralNetwork.predictPOS(tokenized);
         String[] importantWords = Engine.removeUnimportantWords(posTags);
-        boolean isQuestion = Engine.isQuestion(tokenized);
+        boolean isYesNoQuestion = Engine.isYesNoQuestion(tokenized);
+        boolean isQuestion = isYesNoQuestion || Engine.isQuestion(tokenized);
 
         for (POS posTag : posTags) {
             System.out.println(posTag.getTerm() + " -> " + posTag.getTag() + " -> " + posTag.getProb());
@@ -48,96 +49,101 @@ public class Chatbot {
         msgSentence.setAdjectiveNouns(adjectiveNoun);
 
         memory.add(msgSentence, isQuestion);
+        if (isYesNoQuestion) {
+            return "Yes";
+        } else if (isQuestion) {
+            return getAnswer(message, importantWords, subjects);
+        } else {
+            // todo: randomize affirmative answer
+            return "I see!";
+        }
+    }
 
-        if (isQuestion) {
-            Sentence[] tfidfResults = memory.findTFIDF(importantWords);
+    public String getAnswer(String message, String[] importantWords, Phrase[] subjects) {
+        Sentence[] tfidfResults = memory.findTFIDF(importantWords);
 
-            for (Sentence t : tfidfResults) {
-                System.out.println("found -> " + t);
-            }
+        for (Sentence t : tfidfResults) {
+            System.out.println("found -> " + t);
+        }
 
-            if (tfidfResults.length == 0) {
-                // todo: randomize more answer
-                return "Sorry I don't understand what you mean, please tell me about that!";
-            } else {
-                for (int i = 0; i < tfidfResults.length; i++) {
-                    Sentence result = tfidfResults[i];
+        if (tfidfResults.length == 0) {
+            // todo: randomize more answer
+            return "Sorry I don't understand what you mean, please tell me about that!";
+        } else {
+            for (int i = 0; i < tfidfResults.length; i++) {
+                Sentence result = tfidfResults[i];
 
-                    if (message.toLowerCase().contains("when") || message.toLowerCase().contains("where")) {
-                        Phrase[] locations = result.getLocations();
+                if (message.toLowerCase().contains("when") || message.toLowerCase().contains("where")) {
+                    Phrase[] locations = result.getLocations();
 
-                        if (locations.length == 0)
-                            return result.getSentence();
-
-                        for (int j = 0; j < locations.length; j++) {
-                            Phrase location = locations[j];
-                            for (int k = 0; k < importantWords.length; k++) {
-                                if (!location.getPhrase().toLowerCase().contains(importantWords[k].toLowerCase()))
-                                    return location.getPhrase();
-                            }
-                        }
-                    }
-
-                    Phrase[] adjectiveNouns = result.getAdjectiveNouns();
-
-                    if (adjectiveNouns.length == 0)
+                    if (locations.length == 0)
                         return result.getSentence();
 
-                    Phrase[] resultSubjects = result.getSubjects();
-
-                    boolean sameSubject = false;
-                    if (resultSubjects.length != 0) {
-                        for (int j = 0; j < subjects.length; j++) {
-                            if (sameSubject)
-                                break;
-
-                            for (int k = 0; k < resultSubjects.length; k++) {
-                                String s1 = subjects[j].getPhrase().toLowerCase();
-                                String s2 = resultSubjects[k].getPhrase().toLowerCase();
-                                // cannot use contains, maybe have error, use string similarity is better.
-                                // 80% similarity is enough.
-                                double similarity = StringSimilarity.similarity(s1, s2);
-                                System.out.println("Similarity s1: " + s1 + " s2:" + s2 + " :" + similarity);
-                                if (similarity >= 0.8) {
-                                    sameSubject = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (!sameSubject && i == tfidfResults.length - 1)
-                        // todo: randomize answer
-                        return "Seems like my memory doesn't have this information, could you mind to tell me more?";
-
-
-                    if (message.toLowerCase().contains("who") || message.toLowerCase().contains("what")) {
-                        System.out.println("result subject length -> " + resultSubjects.length);
-
-                        for (int j = 0; j < resultSubjects.length; j++) {
-                            Phrase subject = adjectiveNouns[j];
-                            for (int k = 0; k < importantWords.length; k++) {
-                                System.out.println(subject.getPhrase() + " <------ ");
-                                if (!subject.getPhrase().toLowerCase().contains(importantWords[k].toLowerCase()))
-                                    return subject.getPhrase();
-                            }
-                        }
-                    }
-
-                    for (int j = 0; j < resultSubjects.length; j++) {
-                        Phrase combinedSubject = resultSubjects[j];
+                    for (int j = 0; j < locations.length; j++) {
+                        Phrase location = locations[j];
                         for (int k = 0; k < importantWords.length; k++) {
-                            if (resultSubjects[j].getPhrase().toLowerCase().contains(importantWords[k].toLowerCase()))
-                                return combinedSubject.getPhrase();
+                            if (!location.getPhrase().toLowerCase().contains(importantWords[k].toLowerCase()))
+                                return location.getPhrase();
                         }
                     }
                 }
 
-                return tfidfResults[0].getSentence();
+                Phrase[] adjectiveNouns = result.getAdjectiveNouns();
+
+                if (adjectiveNouns.length == 0)
+                    return result.getSentence();
+
+                Phrase[] resultSubjects = result.getSubjects();
+
+                boolean sameSubject = false;
+                if (resultSubjects.length != 0) {
+                    for (int j = 0; j < subjects.length; j++) {
+                        if (sameSubject)
+                            break;
+
+                        for (int k = 0; k < resultSubjects.length; k++) {
+                            String s1 = subjects[j].getPhrase().toLowerCase();
+                            String s2 = resultSubjects[k].getPhrase().toLowerCase();
+                            // cannot use contains, maybe have error, use string similarity is better.
+                            // 80% similarity is enough.
+                            double similarity = StringSimilarity.similarity(s1, s2);
+                            System.out.println("Similarity s1: " + s1 + " s2:" + s2 + " :" + similarity);
+                            if (similarity >= 0.8) {
+                                sameSubject = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!sameSubject && i == tfidfResults.length - 1)
+                    // todo: randomize answer
+                    return "Seems like my memory doesn't have this information, could you mind to tell me more?";
+
+
+                if (message.toLowerCase().contains("who") || message.toLowerCase().contains("what")) {
+                    System.out.println("result subject length -> " + resultSubjects.length);
+
+                    for (int j = 0; j < resultSubjects.length; j++) {
+                        Phrase subject = adjectiveNouns[j];
+                        for (int k = 0; k < importantWords.length; k++) {
+                            System.out.println(subject.getPhrase() + " <------ ");
+                            if (!subject.getPhrase().toLowerCase().contains(importantWords[k].toLowerCase()))
+                                return subject.getPhrase();
+                        }
+                    }
+                }
+
+                for (int j = 0; j < resultSubjects.length; j++) {
+                    Phrase combinedSubject = resultSubjects[j];
+                    for (int k = 0; k < importantWords.length; k++) {
+                        if (resultSubjects[j].getPhrase().toLowerCase().contains(importantWords[k].toLowerCase()))
+                            return combinedSubject.getPhrase();
+                    }
+                }
             }
-        } else {
-            // todo: randomize affirmative answer
-            return "I see!";
+
+            return tfidfResults[0].getSentence();
         }
     }
 }
