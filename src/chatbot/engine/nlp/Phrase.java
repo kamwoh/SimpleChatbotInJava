@@ -27,7 +27,15 @@ public class Phrase {
     }
 
     public String toString() {
-        return getPhrase();
+        StringBuilder ret = new StringBuilder();
+
+        for (int i = 0; i < phrase.length; i++) {
+            ret.append(phrase[i].toString());
+            if (i != phrase.length - 1)
+                ret.append("&");
+        }
+
+        return ret.toString();
     }
 
     public static Phrase[] combine(Phrase[] phrase1, Phrase[] phrase2) {
@@ -44,6 +52,30 @@ public class Phrase {
         }
 
         return combined;
+    }
+
+    public static boolean phraseContains(Phrase[] phrases, String word) {
+        for (Phrase phrase : phrases) {
+            if (phraseContains(phrase, word))
+                return true;
+        }
+        return false;
+    }
+
+    public static boolean phraseContains(Phrase phrase, String word) {
+        boolean result = phrase.getPhrase().toLowerCase().contains(word.toLowerCase());
+        System.out.println(phrase.toString().toLowerCase() + " contains " + word.toLowerCase() + " " + result);
+        return phrase.getPhrase().toLowerCase().contains(word.toLowerCase());
+    }
+
+    public static Phrase parseString(String s) {
+        ArrayList<POS> list = new ArrayList<>();
+        String[] splitByAmpersand = s.split("&");
+        for (int i = 0; i < splitByAmpersand.length; i++) {
+            POS pos = POS.parseString(splitByAmpersand[i]);
+            list.add(pos);
+        }
+        return new Phrase(list);
     }
 
 }

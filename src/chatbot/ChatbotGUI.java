@@ -6,8 +6,10 @@ import chatbot.utils.Utils;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
-public class ChatbotGUI {
+public class ChatbotGUI implements WindowListener {
     private int width = 700;
     private int height = 700;
 
@@ -44,10 +46,49 @@ public class ChatbotGUI {
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Chatbot");
-        frame.setContentPane(new ChatbotGUI().mainPanel);
+        ChatbotGUI chatbotGUI = new ChatbotGUI();
+        frame.setContentPane(chatbotGUI.mainPanel);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.addWindowListener(chatbotGUI);
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    @Override
+    public void windowOpened(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowClosing(WindowEvent e) {
+        System.out.println("saving...");
+        chatbot.save();
+        System.out.println("done!");
+    }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowIconified(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowDeiconified(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowActivated(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowDeactivated(WindowEvent e) {
+
     }
 }

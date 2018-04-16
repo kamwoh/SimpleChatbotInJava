@@ -26,6 +26,7 @@ hs_err_pid*
 bin/
 
 # weights
+data/memory.csv
 data/textweights/
 data/weights32/
 data/weights64/

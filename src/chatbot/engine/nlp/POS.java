@@ -311,4 +311,13 @@ public class POS {
         result = 31 * result + tag.hashCode();
         return result;
     }
+
+    public String toString() {
+        return term + "_" + tag + "_" + prob;
+    }
+
+    public static POS parseString(String s) {
+        String[] splitByUnderscore = s.split("_");
+        return new POS(splitByUnderscore[0], splitByUnderscore[1], Double.parseDouble(splitByUnderscore[2]));
+    }
 }

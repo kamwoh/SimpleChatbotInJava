@@ -2,6 +2,7 @@ package chatbot.engine.nlp;
 
 import chatbot.engine.Engine;
 import chatbot.engine.math.MathFunction;
+import chatbot.engine.math.MatrixFunction;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -107,11 +108,32 @@ public class TFIDF {
         // find sorted indices
         ArrayList<Sentence> filtered = new ArrayList<>();
         int[] sortedIndices = getNonZeroSortedIndex(tfScores);
+        int getTop = 5; // get only top 5 results
 
         for (int i = 0; i < sortedIndices.length; i++) {
+            if (i == getTop)
+                break;
             filtered.add(documents.get(sortedIndices[i]));
         }
 
         return filtered.toArray(new Sentence[filtered.size()]);
+    }
+
+    public static boolean[] findTF(Sentence sentence, String[] importantWords) {
+        Phrase[][] phrases = {sentence.getSubjects(), sentence.getAdjectiveNouns(), sentence.getLocations()};
+
+        boolean[] canTake = {true, true, true};
+        int[] countTF = {0, 0, 0}; // check tf category
+
+        for (int i = 0; i < countTF.length; i++) {
+            for (int j = 0; j < importantWords.length; j++) {
+                if (Phrase.phraseContains(phrases[i], importantWords[j])) {
+                    canTake[i] = false;
+                    countTF[i]++;
+                }
+            }
+        }
+
+        return canTake;
     }
 }
