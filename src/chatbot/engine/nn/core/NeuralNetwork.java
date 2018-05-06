@@ -2,6 +2,7 @@ package chatbot.engine.nn.core;
 
 import chatbot.engine.nn.optimizer.Optimizer;
 import chatbot.inputs.dataset.Dataset;
+import chatbot.utils.Logger;
 import chatbot.utils.json.parser.ParseException;
 
 import java.io.IOException;
@@ -41,7 +42,7 @@ public abstract class NeuralNetwork {
     }
 
     public void setWeight(String name, Double[][] weight) {
-        System.out.println("Set weight for -> " + name + " with shape (" + weight.length + "," + weight[0].length + ")");
+        Logger.println("Set weight for -> " + name + " with shape (" + weight.length + "," + weight[0].length + ")");
         memory.put(name, weight);
     }
 

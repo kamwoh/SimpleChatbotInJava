@@ -19,6 +19,8 @@ public class ChatbotGUI implements WindowListener {
     private JPanel mainPanel;
     private JScrollPane messageAreaScrollPane;
     private JTextArea messageArea;
+    private JButton forgetButton;
+    private JButton clearButton;
 
     public ChatbotGUI() {
         chatbot = new Chatbot();
@@ -34,13 +36,22 @@ public class ChatbotGUI implements WindowListener {
             } else {
                 messageArea.append(String.format("[%s] You: ", Utils.getCurrentTimeInString()) + message + "\n");
                 System.out.println("---------------------------------------------------------------------------");
-                message = chatbot.getReply(message);
+                message = chatbot.getReplyV2(message);
                 System.out.println("---------------------------------------------------------------------------");
-                messageArea.append(String.format("[%s] Bot: ", Utils.getCurrentTimeInString()) + message + "\n");
+                String[] splitByNL = message.split("\n");
+
+                for (String m : splitByNL)
+                    messageArea.append(String.format("[%s] Bot: ", Utils.getCurrentTimeInString()) + m + "\n");
             }
         };
 
+        ActionListener forgetActionListener = e -> {
+            chatbot.resetMemory();
+            JOptionPane.showMessageDialog(null, "Memory has been reset!");
+        };
+
         sendButton.addActionListener(replyActionListener);
+        forgetButton.addActionListener(forgetActionListener);
         messageField.addActionListener(replyActionListener);
     }
 

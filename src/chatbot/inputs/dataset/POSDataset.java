@@ -1,7 +1,7 @@
 package chatbot.inputs.dataset;
 
-import chatbot.utils.ArrayUtils;
 import chatbot.engine.math.MatrixFunction;
+import chatbot.utils.ArrayUtils;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -65,6 +65,10 @@ public class POSDataset implements Dataset {
         load("data/inputVocab_v2.csv", "data/posClasses_v2.csv");
     }
 
+    private static void loadV3() {
+        load("data/inputVocab_v3.csv", "data/posClasses_v3.csv");
+    }
+
     public static void useV1() {
         version = 1;
         loadV1();
@@ -73,6 +77,11 @@ public class POSDataset implements Dataset {
     public static void useV2() {
         version = 2;
         loadV2();
+    }
+
+    public static void useV3() {
+        version = 3;
+        loadV3();
     }
 
     public static int getVocabSize() {

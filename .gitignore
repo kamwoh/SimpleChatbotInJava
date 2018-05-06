@@ -27,6 +27,8 @@ bin/
 
 # weights
 data/memory.csv
+data/memoryV2.csv
+data/weights16_v3_half/
 data/textweights/
 data/weights32/
 data/weights64/

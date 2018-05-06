@@ -60,7 +60,6 @@ public class POS {
     static {
         specialVerb.add("is");
         specialVerb.add("are");
-
     }
 
     private String term;
@@ -78,8 +77,8 @@ public class POS {
         this.tag = tag;
         this.prob = prob;
 
-        if (this.prob < 0.8)
-            this.tag = NOUN;
+//        if (this.prob < 0.6)
+//            this.tag = NOUN;
     }
 
     public int getTermLength() {

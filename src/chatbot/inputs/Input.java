@@ -11,9 +11,10 @@ public class Input {
         String[] inputWords = Engine.tokenize(word);
         Double[] bag = new Double[words.size()];
         // stem words
-        for (int j = 0; j < inputWords.length; j++) {
-            inputWords[j] = Engine.stem(inputWords[j].toLowerCase());
-        }
+        inputWords = Engine.stem(inputWords);
+//        for (int j = 0; j < inputWords.length; j++) {
+//            inputWords[j] = Engine.stem(inputWords[j].toLowerCase());
+//        }
         // set input vector
         List<String> inputWordsList = Arrays.asList(inputWords);
 

@@ -3,12 +3,14 @@ package chatbot.inputs;
 import chatbot.engine.math.MathFunction;
 import chatbot.engine.math.MatrixFunction;
 import chatbot.inputs.dataset.POSDataset;
+import chatbot.utils.Logger;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class POSInput {
 
@@ -107,11 +109,16 @@ public class POSInput {
          'capitals_inside': sentence_terms[index][1:].lower() != sentence_terms[index][1:]
          }
          */
+        Logger.println("Converting input to features...");
+
         String[][] out = new String[sentenceTerms.length][POSDataset.getVocabSize()];
 
         for (int index = 0; index < sentenceTerms.length; index++) {
             out[index] = convertToFeatures(sentenceTerms, index);
+            Logger.println(sentenceTerms[index] + " -> " + Arrays.toString(out[index]));
         }
+
+        Logger.println("Done...");
 
         return out;
     }

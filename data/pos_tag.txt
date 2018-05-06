@@ -15797,7 +15797,7 @@ tijuana NOUN
 chopped VERB
 truthfulness NOUN
 organize VERB
-sentence NOUN
+sentenceV1 NOUN
 racketeer NOUN
 i. NOUN
 crooning VERB
@@ -45181,7 +45181,7 @@ leninism-marxism NOUN
 authorize VERB
 poussins NOUN
 peering VERB
-sentence-structure NOUN
+sentenceV1-structure NOUN
 buses NOUN
 clapping VERB NOUN
 letitia NOUN

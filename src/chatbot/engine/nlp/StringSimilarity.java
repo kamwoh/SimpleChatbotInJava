@@ -18,7 +18,12 @@ public class StringSimilarity {
         return (longerLength - editDistance(longer, shorter)) / (double) longerLength;
     }
 
-    public static int editDistance(String s1, String s2) {
+    /**
+     * Source
+     * 1. https://stackoverflow.com/questions/955110/similarity-string-comparison-in-java
+     * 2. http://rosettacode.org/wiki/Levenshtein_distance#Java
+     */
+    private static int editDistance(String s1, String s2) {
         s1 = s1.toLowerCase();
         s2 = s2.toLowerCase();
 
@@ -32,8 +37,7 @@ public class StringSimilarity {
                     if (j > 0) {
                         int newValue = costs[j - 1];
                         if (s1.charAt(i - 1) != s2.charAt(j - 1))
-                            newValue = Math.min(Math.min(newValue, lastValue),
-                                    costs[j]) + 1;
+                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
                         costs[j - 1] = lastValue;
                         lastValue = newValue;
                     }
@@ -43,6 +47,15 @@ public class StringSimilarity {
                 costs[s2.length()] = lastValue;
         }
         return costs[s2.length()];
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Result abcdefg & gfedcba: " + similarity("abcdefg", "gfedcba"));
+        System.out.println("Result ran & run: " + similarity("ran", "run"));
+        System.out.println("Result width & wdth: " + similarity("width", "wdth"));
+        System.out.println("Result sing & song: " + similarity("sing", "song"));
+        System.out.println("Result Chiayi & Yukang: " + similarity("Chiayi", "Yukang"));
+        System.out.println("Result compare & compare: " + similarity("compare", "compare"));
     }
 
 }

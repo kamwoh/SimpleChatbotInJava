@@ -3,7 +3,6 @@ package chatbot.engine;
 import chatbot.engine.math.MathFunction;
 import chatbot.engine.nlp.POS;
 import chatbot.engine.nlp.Stemmer;
-import chatbot.inputs.LexiconDatabase;
 import chatbot.inputs.Stopwords;
 
 import java.util.ArrayList;
@@ -53,7 +52,7 @@ public class Engine {
     public static String stem(String input) {
         Stemmer stemmer = new Stemmer();
 
-        for (char c : input.toCharArray())
+        for (char c : input.toLowerCase().toCharArray())
             stemmer.add(c);
 
         stemmer.stem();
@@ -61,21 +60,44 @@ public class Engine {
         return stemmer.toString();
     }
 
+    public static String[] stem(String[] inputs) {
+        ArrayList<String> list = new ArrayList<>();
+
+        for (String input : inputs) {
+            Stemmer stemmer = new Stemmer();
+
+            for (char c : input.toLowerCase().toCharArray())
+                stemmer.add(c);
+
+            stemmer.stem();
+
+            list.add(stemmer.toString());
+        }
+
+        return list.toArray(new String[list.size()]);
+    }
+
     public static String[] removeUnimportantWords(POS[] tokenized) {
         ArrayList<String> filtered = new ArrayList<>();
-
+        int i = 0;
+        int maxCount = 2; // consider only first 2 words are unimportant words
         for (POS s : tokenized) {
             // check tag
-            boolean firstFilter = s.isVerb() || s.isNoun() || s.isAdj() || s.isAdv();
-            // first filter should eliminate all punctuation & stopwords dy, do below just in case tagging is wrong.
-            boolean notPunctuation = firstFilter && !punctuation.contains(s.getTerm());
-            // check stopwords
-            boolean notStopword = notPunctuation && !Stopwords.contains(s.getTerm());
-            // in lexicon
-//            boolean inLexicon = notStopword && LexiconDatabase.contains(s.getTerm());
+            boolean firstFilter = s.isVerb() || s.isNoun() || s.isAdj() || s.isAdv() || s.isAdp() || s.isNum() || s.isPron() || s.isDet();
+            if (i < maxCount) {
+                // first filter should eliminate all punctuation & stopwords dy, do below just in case tagging is wrong.
+                boolean notPunctuation = firstFilter && !punctuation.contains(s.getTerm());
+                // check stopwords
+                boolean notStopword = notPunctuation && !Stopwords.contains(s.getTerm());
 
-            if (notStopword) {
-                filtered.add(s.getTerm());
+                i++;
+
+                if (notStopword) {
+                    filtered.add(s.getTerm());
+                }
+            } else {
+                if (firstFilter) // only condition stated above
+                    filtered.add(s.getTerm());
             }
         }
 
@@ -83,7 +105,6 @@ public class Engine {
     }
 
     public static boolean isQuestion(String[] tokenized) {
-//        for (int i = 0; i < tokenized.length; i++) {
         int i = 0;
         boolean isWhat = tokenized[i].equalsIgnoreCase("what");
         boolean isWho = isWhat || tokenized[i].equalsIgnoreCase("who");
@@ -94,17 +115,17 @@ public class Engine {
         boolean containQuestionMark = isHow || tokenized[tokenized.length - 1].equalsIgnoreCase("?");
 
         return containQuestionMark;
-//        if (containQuestionMark)
-//            return true;
-//
-//        return false;
     }
 
     public static boolean isYesNoQuestion(String[] tokenized) {
         int i = 0;
+
         boolean isIs = tokenized[i].equalsIgnoreCase("is");
         boolean isAre = isIs || tokenized[i].equalsIgnoreCase("are");
+        boolean isDid = isAre || tokenized[i].equalsIgnoreCase("did");
+        boolean isDo = isDid || tokenized[i].equalsIgnoreCase("do");
+        boolean isDoes = isDo || tokenized[i].equalsIgnoreCase("does");
 
-        return isAre;
+        return isDoes;
     }
 }

@@ -1,13 +1,14 @@
 package chatbot.engine.nn.model;
 
-import chatbot.utils.ArrayUtils;
 import chatbot.engine.math.MatrixFunction;
-import chatbot.engine.nn.core.TrainParam;
-import chatbot.engine.nn.core.NeuralNetwork;
-import chatbot.engine.nn.optimizer.GradientDescentOptimizer;
 import chatbot.engine.nlp.POS;
+import chatbot.engine.nn.core.NeuralNetwork;
+import chatbot.engine.nn.core.TrainParam;
+import chatbot.engine.nn.optimizer.GradientDescentOptimizer;
 import chatbot.inputs.POSInput;
 import chatbot.inputs.dataset.POSDataset;
+import chatbot.utils.ArrayUtils;
+import chatbot.utils.Logger;
 import chatbot.utils.Utils;
 import chatbot.utils.json.parser.ParseException;
 
@@ -152,7 +153,7 @@ public class POSNeuralNetwork extends NeuralNetwork {
     }
 
     public void load(String filePath) throws IOException, ClassNotFoundException, ParseException {
-        System.out.println("Loading weights...");
+        Logger.println("Loading weights...");
         HashMap map = Utils.deserializeHashMap(filePath);
 
         Double[][] weight1 = (Double[][]) map.get("weight1");
@@ -175,19 +176,23 @@ public class POSNeuralNetwork extends NeuralNetwork {
         memory.put("bias2", bias2);
         memory.put("bias3", bias3);
 
-        System.out.println("Loaded weights");
+        Logger.println("Loaded weights");
     }
 
     public POS[] predictPOS(String[] tokenized) {
+        long startTime = System.currentTimeMillis();
+        Logger.println("Predicting POS...");
+
         Double[][] inputs = POSInput.convertToInput(POSInput.convertToFeatures(tokenized));
         Double[][] pred = predict(inputs);
         int[] index = MatrixFunction.argmax(pred);
         POS[] pos = new POS[index.length];
-
         for (int i = 0; i < index.length; i++) {
             pos[i] = new POS(tokenized[i], POSDataset.decodeClass(index[i]), pred[i][index[i]]);
+            Logger.println(pos[i].getTerm() + " -> " + pos[i].getTag() + String.format(" -> %.2f", pos[i].getProb() * 100.0));
         }
 
+        Logger.printf("Predicting POS used %.2f seconds\n", (System.currentTimeMillis() - startTime) / 1000.0);
         return pos;
     }
 
@@ -200,6 +205,13 @@ public class POSNeuralNetwork extends NeuralNetwork {
             fileList.add("data/weights32/weight32_fc2_bias.csv");
             fileList.add("data/weights32/weight32_dense_1_kernel.csv");
             fileList.add("data/weights32/weight32_dense_1_bias.csv");
+        } else if (v == 3 && weightHiddenUnits == 16) {
+            fileList.add("data/weights16_v3_half/weight16_fc1_kernel_v3_half.csv");
+            fileList.add("data/weights16_v3_half/weight16_fc1_bias_v3_half.csv");
+            fileList.add("data/weights16_v3_half/weight16_fc2_kernel_v3_half.csv");
+            fileList.add("data/weights16_v3_half/weight16_fc2_bias_v3_half.csv");
+            fileList.add("data/weights16_v3_half/weight16_dense_1_kernel_v3_half.csv");
+            fileList.add("data/weights16_v3_half/weight16_dense_1_bias_v3_half.csv");
         } else if (v == 1) {
             fileList.add("data/weights64/weight_fc1_kernel.csv");
             fileList.add("data/weights64/weight_fc1_bias.csv");
@@ -226,20 +238,36 @@ public class POSNeuralNetwork extends NeuralNetwork {
             throw new RuntimeException("32 hidden units only have version 1");
     }
 
+    public static POSNeuralNetwork loadPosWeight16(int v) {
+        if (v == 3)
+            return loadPosWeight(16, v);
+        else
+            throw new RuntimeException("16 hidden units only have version 3");
+    }
+
     public static POSNeuralNetwork loadPosWeight64(int v) {
         return loadPosWeight(64, v);
     }
 
     private static POSNeuralNetwork loadPosWeight(int weightHiddenUnits, int v) {
-        if (v != 1 && v != 2)
-            throw new RuntimeException("Version 1 or 2 only: " + v);
+        if (v != 1 && v != 2 && v != 3)
+            throw new RuntimeException("Version 1, 2 or 3 only: " + v);
 
         if (v == 1)
             POSDataset.useV1();
-        else
+        else if (v == 2)
             POSDataset.useV2();
+        else
+            POSDataset.useV3();
+
+        Logger.println("===============POS Neural network settings===============");
 
         POSNeuralNetwork nn = new POSNeuralNetwork(POSDataset.getVocabSize(), POSDataset.getClassesSize());
+
+        Logger.println("Version: " + v);
+        Logger.println("Hidden units: " + weightHiddenUnits);
+        Logger.println("Vocab Size: " + POSDataset.getVocabSize());
+        Logger.println("Classes Size: " + POSDataset.getClassesSize());
 
         try {
             ArrayList<String> fileList = getFileList(weightHiddenUnits, v);
@@ -277,6 +305,8 @@ public class POSNeuralNetwork extends NeuralNetwork {
         } catch (IOException e) {
             throw new RuntimeException();
         }
+
+        Logger.println("===============POS Neural network settings===============");
 
         return nn;
     }
