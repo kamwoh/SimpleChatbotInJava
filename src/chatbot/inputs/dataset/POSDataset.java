@@ -16,8 +16,8 @@ public class POSDataset implements Dataset {
     private static HashMap<String, Integer> classes;
     private static ArrayList<String> classesList;
     private static boolean loaded = false;
-    private static int version = 1; // default load version 1
-    private static int loadedVersion = 1;
+    private static int version = 3;
+    private static int loadedVersion = 3;
 
     private static void load(String vocabFile, String classesFile) {
         if (loaded && version == loadedVersion)
@@ -57,26 +57,8 @@ public class POSDataset implements Dataset {
         }
     }
 
-    private static void loadV1() {
-        load("data/inputVocab.csv", "data/posClasses.csv");
-    }
-
-    private static void loadV2() {
-        load("data/inputVocab_v2.csv", "data/posClasses_v2.csv");
-    }
-
     private static void loadV3() {
         load("data/inputVocab_v3.csv", "data/posClasses_v3.csv");
-    }
-
-    public static void useV1() {
-        version = 1;
-        loadV1();
-    }
-
-    public static void useV2() {
-        version = 2;
-        loadV2();
     }
 
     public static void useV3() {

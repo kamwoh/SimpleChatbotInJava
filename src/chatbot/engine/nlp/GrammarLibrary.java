@@ -49,4 +49,27 @@ public class GrammarLibrary {
             "so that\n" +
             "though\n" +
             "since").split("\n");
+
+    public static final String[] aux = {
+            "is",
+            "are",
+            "was",
+            "were"
+    };
+
+    public static boolean isAux(String word) {
+        for (String s : aux) {
+            if (s.equalsIgnoreCase(word))
+                return true;
+        }
+        return false;
+    }
+
+    public static boolean isTowardWord(String word) {
+        for (String s : towardWords) {
+            if (s.equalsIgnoreCase(word))
+                return true;
+        }
+        return false;
+    }
 }

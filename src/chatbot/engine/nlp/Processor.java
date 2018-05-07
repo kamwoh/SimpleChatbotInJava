@@ -4,6 +4,7 @@ import chatbot.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 
 public class Processor {
 
@@ -126,18 +127,25 @@ public class Processor {
             Logger.println("indexOfAdp in sentence: " + indexOfAdp);
             StringBuilder sb = new StringBuilder();
             if (indexOfAdp != -1) {
-                int i = indexOfAdp;
+                int i = indexOfAdp + 1;
                 boolean nounFound = false;
                 ArrayList<String> toBeAdded = new ArrayList<>();
                 while (i < result.getPosTags().length) {
                     // adp verb [noun noun noun] verb
                     POS resultWordPOS = result.getPosTags()[i++];
-                    if (resultWordPOS.isAdj() || resultWordPOS.isNoun() || resultWordPOS.isDet()) {
+                    Logger.println("Checking word: " + resultWordPOS.toString());
+                    if (!nounFound && resultWordPOS.isVerb()) {
+                        toBeAdded.add(resultWordPOS.getTerm());
+                    } else if (resultWordPOS.isAdj() || resultWordPOS.isNoun() || resultWordPOS.isDet() || resultWordPOS.isAdv()) {
                         nounFound = true;
                         toBeAdded.add(resultWordPOS.getTerm());
                     } else {
                         if (nounFound) {
                             Logger.println("Ended loop at: " + resultWordPOS.toString());
+                            break;
+                        }
+                        if (resultWordPOS.isAdp()) {
+                            Logger.println("Found a adposition: " + resultWordPOS.toString());
                             break;
                         }
                     }
@@ -181,7 +189,7 @@ public class Processor {
             if (indexVerb == -1 && pos != null && pos.isVerb()) // assume simple structure first...
                 indexVerb = i;
 
-            if (indexAdjNoun == -1 && pos != null && (pos.isAdj() || pos.isNoun())) // assume simple structure first...
+            if (indexAdjNoun == -1 && pos != null && (pos.isAdj() || pos.isNoun() || pos.isPron())) // assume simple structure first...
                 indexAdjNoun = i;
 
             posTagOfImportantWords[i] = pos;
@@ -194,8 +202,7 @@ public class Processor {
             POS verbPOS = posTagOfImportantWords[indexVerb];
             processWhoHelperForVerb(tfidfResults, answers, verbPOS.getTerm(), question);
         } else if (indexAdjNoun != -1) {
-            POS nounPOS = posTagOfImportantWords[indexAdjNoun];
-            processWhoHelperForAdjNoun(tfidfResults, answers, nounPOS.getTerm());
+            processWhoHelperForAdjNoun(tfidfResults, answers, importantWords, indexAdjNoun);
         } else {
             Logger.println("Warning: indexVerb and indexAdjNoun not found in question: " + question.getSentence());
         }
@@ -296,10 +303,10 @@ public class Processor {
         }
     }
 
-    private static void processWhoHelperForAdjNoun(SentenceV2[] tfidfResults, ArrayList<String> answers, String nounWord) {
+    private static void processWhoHelperForAdjNoun(SentenceV2[] tfidfResults, ArrayList<String> answers, String[] importantWords, int indexAdjNoun) {
         for (SentenceV2 result : tfidfResults) {
             Logger.println("Searching: " + result.getSentence());
-            int indexOfAdjNoun = result.indexPosOf(nounWord, true);
+            int indexOfAdjNoun = result.indexPosOf(importantWords[indexAdjNoun], true);
             Logger.println("indexOfAdjNoun in sentence: " + indexOfAdjNoun);
             StringBuilder sb = new StringBuilder();
             if (indexOfAdjNoun != -1) {
@@ -310,31 +317,37 @@ public class Processor {
                     if (indexOfIsAreWasWere != -1)
                         break;
                 }
+                Logger.println("anIsAreWasWere: " + indexOfIsAreWasWere);
                 if (indexOfIsAreWasWere != -1) {
                     ArrayList<String> before = new ArrayList<>();
                     ArrayList<String> after = new ArrayList<>();
-                    boolean takeBefore = true;
+                    int beforeCount = 0;
+                    int afterCount = 0;
                     // before
-                    for (int j = 0; j < indexOfIsAreWasWere; j++) {
-                        POS currentPOS = result.getPosTags()[j];
+                    for (String keyword : importantWords) {
+                        for (int j = 0; j < indexOfIsAreWasWere; j++) {
+                            POS currentPOS = result.getPosTags()[j];
 
-                        if (StringSimilarity.similarity(currentPOS.getTerm().toLowerCase(), nounWord.toLowerCase()) >= 0.75) {
-                            takeBefore = false;
-                            break;
+                            if (StringSimilarity.similarity(currentPOS.getTerm().toLowerCase(), keyword.toLowerCase()) >= 0.75) {
+                                beforeCount++;
+                            }
+
+                            if (currentPOS.isNoun() || currentPOS.isAdj() || currentPOS.isPron() || currentPOS.isDet() || currentPOS.isConj()) {
+                                before.add(currentPOS.getTerm());
+                            } else {
+                                break;
+                            }
                         }
 
-                        if (currentPOS.isNoun() || currentPOS.isAdj() || currentPOS.isPron() || currentPOS.isDet()) {
-                            before.add(currentPOS.getTerm());
-                        } else {
-                            break;
-                        }
-                    }
-
-                    if (!takeBefore) {
                         // after
                         for (int j = indexOfIsAreWasWere + 1; j < result.getPosTags().length; j++) {
                             POS currentPOS = result.getPosTags()[j];
-                            if (currentPOS.isNoun() || currentPOS.isAdj() || currentPOS.isPron()) {
+
+                            if (StringSimilarity.similarity(currentPOS.getTerm().toLowerCase(), keyword.toLowerCase()) >= 0.75) {
+                                afterCount++;
+                            }
+
+                            if (currentPOS.isNoun() || currentPOS.isAdj() || currentPOS.isPron() || currentPOS.isConj()) {
                                 after.add(currentPOS.getTerm());
                             } else {
                                 break;
@@ -342,7 +355,16 @@ public class Processor {
                         }
                     }
 
-                    if (takeBefore) {
+                    Logger.println("beforeCount: " + beforeCount);
+                    Logger.println("afterCount: " + afterCount);
+
+                    before = new ArrayList<>(new HashSet<>(before));
+                    after = new ArrayList<>(new HashSet<>(after));
+
+                    Logger.println("before: " + before.toString());
+                    Logger.println("after: " + after.toString());
+
+                    if (beforeCount < afterCount) { // before sentence overlap less than after sentence, then take before
                         for (int j = 0; j < before.size(); j++) {
                             sb.append(before.get(j));
                             if (j < before.size() - 1)
@@ -355,6 +377,8 @@ public class Processor {
                                 sb.append(" ");
                         }
                     }
+
+                    Logger.println("Result: " + sb.toString());
                 }
             }
 
@@ -391,7 +415,8 @@ public class Processor {
                 for (int i = indexOfPredicate + 1; i < result.getPosTags().length; i++) {
                     POS currentPOS = result.getPosTags()[i];
                     if (!nounFound && currentPOS.isVerb()) { // if found verb, add it, but only when nouns are not found
-                        inference.add(currentPOS.getTerm());
+                        if (!GrammarLibrary.isAux(currentPOS.getTerm()))
+                            inference.add(currentPOS.getTerm());
                     } else if (currentPOS.isDet() || currentPOS.isNoun() || currentPOS.isAdj() || currentPOS.isAdv()) {
                         nounFound = true;
                         inference.add(currentPOS.getTerm());

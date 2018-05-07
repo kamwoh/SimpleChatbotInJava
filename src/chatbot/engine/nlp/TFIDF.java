@@ -50,97 +50,6 @@ public class TFIDF {
         return r;
     }
 
-    public static SentenceV1[] calculate(ArrayList<SentenceV1> documents, String[] target_, boolean stemming) {
-        // if filtered target words are empty, then return empty array
-        if (target_.length == 0) {
-            return new SentenceV1[0];
-        }
-
-        String[] target = new String[target_.length];
-
-        // copy and to lower case
-        for (int i = 0; i < target_.length; i++) {
-            target[i] = target_[i].toLowerCase();
-        }
-
-        Logger.println("TFIDF input -> " + Arrays.toString(target));
-
-        double[] tfScores = new double[documents.size()];
-        double idfCount = 0;
-
-        // count tf and idf
-        for (int i = 0; i < documents.size(); i++) {
-            int tfCount = 0;
-            String sentence = documents.get(i).getSentence().toLowerCase();
-            String[] tokenized = Engine.tokenize(sentence);
-
-            if (stemming)
-                tokenized = Engine.stem(tokenized);
-
-
-            for (String word : tokenized) {
-                for (String t : target) {
-                    if (StringSimilarity.similarity(t, word) >= 0.6) // more than 60% similar
-                        tfCount++;
-//                    if (t.equalsIgnoreCase(word))
-//                        tfCount++;
-                }
-            }
-
-//            int count = 0;
-//            for (String t : target) {
-//                if (sentence.contains(t)) {
-//                    count++;
-//                }
-//            }
-
-            idfCount += (double) tfCount / target.length;
-
-            double tfScore = (double) tfCount / tokenized.length;
-
-            tfScores[i] = tfScore;
-        }
-
-        // find the score
-        double idfScore = MathFunction.log10((double) (documents.size() + 1) / (idfCount + 1e-9)); // +1 is to avoid first information being ignored
-
-        for (int i = 0; i < documents.size(); i++) {
-            tfScores[i] *= idfScore;
-        }
-
-        Logger.println("TFIDF score ->" + Arrays.toString(tfScores));
-        // find sorted indices
-        ArrayList<SentenceV1> filtered = new ArrayList<>();
-        int[] sortedIndices = getNonZeroSortedIndex(tfScores);
-        int getTop = 5; // get only top 5 results
-
-        for (int i = 0; i < sortedIndices.length; i++) {
-            if (i == getTop)
-                break;
-            filtered.add(documents.get(sortedIndices[i]));
-        }
-
-        return filtered.toArray(new SentenceV1[filtered.size()]);
-    }
-
-    public static boolean[] findTF(SentenceV1 sentenceV1, String[] importantWords) {
-        Phrase[][] phrases = {sentenceV1.getSubjects(), sentenceV1.getAdjectiveNouns(), sentenceV1.getLocations()};
-
-        boolean[] canTake = {true, true, true};
-        int[] countTF = {0, 0, 0}; // check tf category
-
-        for (int i = 0; i < countTF.length; i++) {
-            for (int j = 0; j < importantWords.length; j++) {
-                if (Phrase.phraseContains(phrases[i], importantWords[j])) {
-                    canTake[i] = false;
-                    countTF[i]++;
-                }
-            }
-        }
-
-        return canTake;
-    }
-
     public static SentenceV2[] calculateV2(ArrayList<SentenceV2> documents, String[] target_, boolean stemming) {
         // if filtered target words are empty, then return empty array
         if (target_.length == 0) {
@@ -178,8 +87,8 @@ public class TFIDF {
 
             Logger.println(sentence + " " + tfCount);
 
-            if (tfCount < 2) // minimum is 2 element
-                tfCount = 0;
+//            if (tfCount < 2) // minimum is 2 element
+//                tfCount = 0;
 
             idfCount += (double) tfCount / target.length;
 

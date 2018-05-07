@@ -1,14 +1,10 @@
 package chatbot;
 
-import chatbot.utils.ArrayUtils;
 import chatbot.engine.Engine;
 import chatbot.engine.math.MatrixFunction;
 import chatbot.engine.nn.model.POSNeuralNetwork;
-import chatbot.engine.nn.model.TextClassificationNeuralNetwork;
 import chatbot.inputs.POSInput;
 import chatbot.inputs.dataset.POSDataset;
-import chatbot.inputs.dataset.TextClassificationDataset;
-import chatbot.inputs.Input;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -18,32 +14,6 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class TestingMain {
-    public static void textMain() throws Exception {
-        TextClassificationNeuralNetwork nn = new TextClassificationNeuralNetwork();
-
-        nn.load("data/textweights/weights2.data");
-
-        TextClassificationDataset dataset = new TextClassificationDataset("data/trainingset.json");
-
-        Scanner scanner = new Scanner(System.in);
-
-        while (true) {
-            System.out.println("Input a line");
-            String s = scanner.nextLine();
-
-            if (s.trim().equalsIgnoreCase("quit"))
-                break;
-
-            Double[][] inputs = ArrayUtils.makeMatrix(Input.createInput(s, dataset.getWords()));
-            Double[] pred = nn.predict(inputs)[0];
-            int index = MatrixFunction.argmax(pred);
-
-            System.out.println("--------------------------------------------------------");
-            ArrayUtils.printArray(pred);
-            System.out.println("---> " + index + " " + dataset.getClasses().get(index) + " " + MatrixFunction.max(pred));
-        }
-    }
-
     public static POSNeuralNetwork loadPosWeight() {
         POSNeuralNetwork nn = new POSNeuralNetwork(POSDataset.getVocabSize(), POSDataset.getClassesSize());
 

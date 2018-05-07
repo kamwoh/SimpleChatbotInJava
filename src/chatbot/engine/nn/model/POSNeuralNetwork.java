@@ -21,10 +21,6 @@ import java.util.HashMap;
 
 public class POSNeuralNetwork extends NeuralNetwork {
 
-    public POSNeuralNetwork() {
-        super();
-    }
-
     public POSNeuralNetwork(int inputSize, int classSize) {
         super(inputSize, classSize);
     }
@@ -148,10 +144,6 @@ public class POSNeuralNetwork extends NeuralNetwork {
         System.out.println("Saved weights in " + filePath);
     }
 
-    public void printOutputShape() {
-        System.out.println("Output shape -> " + classSize);
-    }
-
     public void load(String filePath) throws IOException, ClassNotFoundException, ParseException {
         Logger.println("Loading weights...");
         HashMap map = Utils.deserializeHashMap(filePath);
@@ -196,46 +188,16 @@ public class POSNeuralNetwork extends NeuralNetwork {
         return pos;
     }
 
-    private static ArrayList<String> getFileList(int weightHiddenUnits, int v) {
+    private static ArrayList<String> getFileList() {
         ArrayList<String> fileList = new ArrayList<>();
-        if (weightHiddenUnits == 32) {
-            fileList.add("data/weights32/weight32_fc1_kernel.csv");
-            fileList.add("data/weights32/weight32_fc1_bias.csv");
-            fileList.add("data/weights32/weight32_fc2_kernel.csv");
-            fileList.add("data/weights32/weight32_fc2_bias.csv");
-            fileList.add("data/weights32/weight32_dense_1_kernel.csv");
-            fileList.add("data/weights32/weight32_dense_1_bias.csv");
-        } else if (v == 3 && weightHiddenUnits == 16) {
-            fileList.add("data/weights16_v3_half/weight16_fc1_kernel_v3_half.csv");
-            fileList.add("data/weights16_v3_half/weight16_fc1_bias_v3_half.csv");
-            fileList.add("data/weights16_v3_half/weight16_fc2_kernel_v3_half.csv");
-            fileList.add("data/weights16_v3_half/weight16_fc2_bias_v3_half.csv");
-            fileList.add("data/weights16_v3_half/weight16_dense_1_kernel_v3_half.csv");
-            fileList.add("data/weights16_v3_half/weight16_dense_1_bias_v3_half.csv");
-        } else if (v == 1) {
-            fileList.add("data/weights64/weight_fc1_kernel.csv");
-            fileList.add("data/weights64/weight_fc1_bias.csv");
-            fileList.add("data/weights64/weight_fc2_kernel.csv");
-            fileList.add("data/weights64/weight_fc2_bias.csv");
-            fileList.add("data/weights64/weight_dense_1_kernel.csv");
-            fileList.add("data/weights64/weight_dense_1_bias.csv");
-        } else {
-            fileList.add("data/weights64_v2/weight64_fc1_kernel_v2.csv");
-            fileList.add("data/weights64_v2/weight64_fc1_bias_v2.csv");
-            fileList.add("data/weights64_v2/weight64_fc2_kernel_v2.csv");
-            fileList.add("data/weights64_v2/weight64_fc2_bias_v2.csv");
-            fileList.add("data/weights64_v2/weight64_dense_1_kernel_v2.csv");
-            fileList.add("data/weights64_v2/weight64_dense_1_bias_v2.csv");
-        }
+        fileList.add("data/weights16_v3_half/weight16_fc1_kernel_v3_half.csv");
+        fileList.add("data/weights16_v3_half/weight16_fc1_bias_v3_half.csv");
+        fileList.add("data/weights16_v3_half/weight16_fc2_kernel_v3_half.csv");
+        fileList.add("data/weights16_v3_half/weight16_fc2_bias_v3_half.csv");
+        fileList.add("data/weights16_v3_half/weight16_dense_1_kernel_v3_half.csv");
+        fileList.add("data/weights16_v3_half/weight16_dense_1_bias_v3_half.csv");
 
         return fileList;
-    }
-
-    public static POSNeuralNetwork loadPosWeight32(int v) {
-        if (v == 1)
-            return loadPosWeight(32, v);
-        else
-            throw new RuntimeException("32 hidden units only have version 1");
     }
 
     public static POSNeuralNetwork loadPosWeight16(int v) {
@@ -245,20 +207,8 @@ public class POSNeuralNetwork extends NeuralNetwork {
             throw new RuntimeException("16 hidden units only have version 3");
     }
 
-    public static POSNeuralNetwork loadPosWeight64(int v) {
-        return loadPosWeight(64, v);
-    }
-
     private static POSNeuralNetwork loadPosWeight(int weightHiddenUnits, int v) {
-        if (v != 1 && v != 2 && v != 3)
-            throw new RuntimeException("Version 1, 2 or 3 only: " + v);
-
-        if (v == 1)
-            POSDataset.useV1();
-        else if (v == 2)
-            POSDataset.useV2();
-        else
-            POSDataset.useV3();
+        POSDataset.useV3();
 
         Logger.println("===============POS Neural network settings===============");
 
@@ -270,7 +220,7 @@ public class POSNeuralNetwork extends NeuralNetwork {
         Logger.println("Classes Size: " + POSDataset.getClassesSize());
 
         try {
-            ArrayList<String> fileList = getFileList(weightHiddenUnits, v);
+            ArrayList<String> fileList = getFileList();
 
             ArrayList<String> weightList = new ArrayList<>();
 
