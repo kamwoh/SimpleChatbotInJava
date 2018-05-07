@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 
 public class LexiconDatabase {
-    private static String filePath = "data/pos_tag.txt";
+    private static String filePath = "data/posTag.txt";
     private static HashMap<String, String[]> lexiconMap;
 
     static {
@@ -32,11 +32,6 @@ public class LexiconDatabase {
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
-    }
-
-    public static String[] getPOSTagging(String word) {
-        String[] s = lexiconMap.get(word);
-        return s == null ? new String[]{"NOUN"} : s;
     }
 
     public static boolean contains(String word) {

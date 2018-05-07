@@ -58,7 +58,7 @@ public class POSDataset implements Dataset {
     }
 
     private static void loadV3() {
-        load("data/inputVocab_v3.csv", "data/posClasses_v3.csv");
+        load("data/inputVocabV3.csv", "data/posClassesV3.csv");
     }
 
     public static void useV3() {
