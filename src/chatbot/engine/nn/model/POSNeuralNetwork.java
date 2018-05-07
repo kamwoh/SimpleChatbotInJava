@@ -190,12 +190,12 @@ public class POSNeuralNetwork extends NeuralNetwork {
 
     private static ArrayList<String> getFileList() {
         ArrayList<String> fileList = new ArrayList<>();
-        fileList.add("data/weights16_v3_half/weight16_fc1_kernel_v3_half.csv");
-        fileList.add("data/weights16_v3_half/weight16_fc1_bias_v3_half.csv");
-        fileList.add("data/weights16_v3_half/weight16_fc2_kernel_v3_half.csv");
-        fileList.add("data/weights16_v3_half/weight16_fc2_bias_v3_half.csv");
-        fileList.add("data/weights16_v3_half/weight16_dense_1_kernel_v3_half.csv");
-        fileList.add("data/weights16_v3_half/weight16_dense_1_bias_v3_half.csv");
+        fileList.add("data/weights16V3Half/weight16_fc1_kernel_v3_half.csv");
+        fileList.add("data/weights16V3Half/weight16_fc1_bias_v3_half.csv");
+        fileList.add("data/weights16V3Half/weight16_fc2_kernel_v3_half.csv");
+        fileList.add("data/weights16V3Half/weight16_fc2_bias_v3_half.csv");
+        fileList.add("data/weights16V3Half/weight16_dense_1_kernel_v3_half.csv");
+        fileList.add("data/weights16V3Half/weight16_dense_1_bias_v3_half.csv");
 
         return fileList;
     }
@@ -253,7 +253,7 @@ public class POSNeuralNetwork extends NeuralNetwork {
                 nn.setWeight(weightName, doubleWeight);
             }
         } catch (IOException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
 
         Logger.println("===============POS Neural network settings===============");

@@ -7,8 +7,6 @@ import chatbot.engine.nlp.StringUtils;
 import chatbot.engine.nn.model.POSNeuralNetwork;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 
 public class Chatbot {
     private Memory memory;
@@ -80,24 +78,34 @@ public class Chatbot {
 
             ArrayList<String> distinct = new ArrayList<>();
 
-            Collections.addAll(distinct, answers);
-
-            distinct = new ArrayList<>(new HashSet<>(distinct));
+            for (String answer : answers) {
+                if (!distinct.contains(answer)) {
+                    distinct.add(answer);
+                }
+            }
 
             answers = distinct.toArray(new String[distinct.size()]);
-
-            if (answers.length != 0)
-                sb.append("I found the below answers: \n");
 
             for (int i = 0; i < answers.length; i++) {
                 String answer = answers[i];
 
                 if (StringUtils.containsWord(answer, "my"))
-                    StringUtils.replaceAll(answer, "my", "your");
+                    answer = StringUtils.replaceAll(answer, "my", "your");
                 else if (StringUtils.containsWord(answer, "your"))
-                    StringUtils.replaceAll(answer, "your", "my");
+                    answer = StringUtils.replaceAll(answer, "your", "my");
 
-                sb.append(i + 1).append(". ").append(answer.trim());
+                if (StringUtils.containsWord(answer, "and")) {
+                    String[] splitBy = StringUtils.splitByKeyword(answer, "and");
+
+                    for (int j = 0; j < splitBy.length; j++) {
+                        String s = splitBy[j];
+                        sb.append(s.trim());
+                        if (j < answers.length - 1)
+                            sb.append("\n");
+                    }
+                } else {
+                    sb.append(answer.trim());
+                }
 
                 if (i < answers.length - 1)
                     sb.append("\n");

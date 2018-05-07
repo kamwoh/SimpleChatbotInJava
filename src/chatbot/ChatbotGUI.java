@@ -1,6 +1,7 @@
 package chatbot;
 
 import chatbot.engine.Chatbot;
+import chatbot.utils.Logger;
 import chatbot.utils.Utils;
 
 import javax.swing.*;
@@ -21,27 +22,47 @@ public class ChatbotGUI implements WindowListener {
     private JTextArea messageArea;
     private JButton forgetButton;
     private JButton clearButton;
+    private JLabel loadingLabel;
+    private boolean loading;
 
     public ChatbotGUI() {
         chatbot = new Chatbot();
+        loading = false;
+        loadingLabel.setText("");
 
         mainPanel.setPreferredSize(new Dimension(width, height));
         mainPanel.setMinimumSize(new Dimension(width, height));
 
         ActionListener replyActionListener = e -> {
-            String message = messageField.getText().trim();
+            final String message = messageField.getText().trim();
             messageField.setText("");
             if (message.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Please type something!");
             } else {
-                messageArea.append(String.format("[%s] You: ", Utils.getCurrentTimeInString()) + message + "\n");
-                System.out.println("---------------------------------------------------------------------------");
-                message = chatbot.getReplyV2(message);
-                System.out.println("---------------------------------------------------------------------------");
-                String[] splitByNL = message.split("\n");
+                sendButton.setEnabled(false);
+                messageField.setEnabled(false);
+                loadingLabel.setText("Loading...");
+                messageArea.append(String.format("[%s] You: ", Utils.getCurrentTimeInString()) + message + "\n\n");
 
-                for (String m : splitByNL)
-                    messageArea.append(String.format("[%s] Bot: ", Utils.getCurrentTimeInString()) + m + "\n");
+                Runnable run = () -> {
+                    Logger.println("---------------------------------------------------------------------------");
+                    String replyMessage = chatbot.getReplyV2(message);
+                    Logger.println("---------------------------------------------------------------------------");
+                    String[] splitByNL = replyMessage.split("\n");
+
+                    for (String m : splitByNL)
+                        messageArea.append(String.format("[%s] Bot: ", Utils.getCurrentTimeInString()) + m + "\n\n");
+
+                    sendButton.setEnabled(true);
+                    messageField.setEnabled(true);
+                    loadingLabel.setText("");
+
+                    JScrollBar vertical = messageAreaScrollPane.getVerticalScrollBar();
+                    vertical.setValue(vertical.getMaximum());
+                };
+
+                Thread thread = new Thread(run);
+                thread.start();
             }
         };
 
@@ -50,8 +71,15 @@ public class ChatbotGUI implements WindowListener {
             JOptionPane.showMessageDialog(null, "Memory has been reset!");
         };
 
+        ActionListener clearActionListener = e -> {
+            messageArea.setText("");
+            JOptionPane.showMessageDialog(null, "The text area has been cleared");
+        };
+
+
         sendButton.addActionListener(replyActionListener);
         forgetButton.addActionListener(forgetActionListener);
+        clearButton.addActionListener(clearActionListener);
         messageField.addActionListener(replyActionListener);
     }
 

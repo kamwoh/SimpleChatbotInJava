@@ -4,44 +4,29 @@ import chatbot.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 
 public class Processor {
 
-//    public static String[] findSubjectAndPredicateFromQuestion(SentenceV2 question, String[] importantWords) {
-//        POS[] posTagOfImportantWords = new POS[importantWords.length];
-//        String subject = "";
-//        String predicate = "";
-//        for (int i = 0; i < importantWords.length; i++) {
-//            POS pos = question.posOf(importantWords[i], true);
-//
-//            if (pos == null)
-//                Logger.println("Warning: " + importantWords[i] + " pos is null");
-//
-//            posTagOfImportantWords[i] = pos;
-//        }
-//
-//        boolean verbIsShown = false;
-//        int nounStartIndex = -1;
-//        int nounEndIndex = -1;
-//        for (int i = 0; i < posTagOfImportantWords.length - 1; i++) {
-//            if (posTagOfImportantWords[i] == null)
-//                continue;
-//
-//            if (posTagOfImportantWords[i].isNoun() || posTagOfImportantWords[i].isAdj()) {
-//                if (!verbIsShown) {
-//                    if (nounStartIndex == -1)
-//                        nounStartIndex = i;
-//                }
-//            } else {
-//                verbIsShown = true;
-//                if (nounEndIndex == -1)
-//                    nounEndIndex = i;
-//            }
-//        }
-//
-//        return new String[]{subject, predicate};
-//    }
+    public static boolean checkContextValue(SentenceV2 result, String[] importantWords) {
+        Logger.println("Checking: " + result.getSentence());
+
+        int count = 0;
+
+        for (String word : importantWords) {
+            int index = result.indexPosOf(word, true);
+            if (index != -1) {
+                count++;
+            }
+        }
+
+        double percentageImportantWords = (double) count / (double) importantWords.length;
+        double percentageSentence = (double) count / (double) result.getPosTags().length;
+        double context = (percentageImportantWords + percentageSentence) / 2;
+
+        Logger.println("Context: " + context);
+
+        return context < 0.55;
+    }
 
     public static String[] processWhy(SentenceV2[] tfidfResults, SentenceV2 question, String[] importantWords) {
         ArrayList<String> answers = new ArrayList<>();
@@ -49,6 +34,9 @@ public class Processor {
 
         for (SentenceV2 result : tfidfResults) {
             // just assume they have one "why" stuff
+            if (checkContextValue(result, importantWords))
+                continue;
+
             int indexOfBecause = result.indexOf("because", true);
             int indexOfDueTo = result.indexOf("due to", true);
             int indexOfAs = result.indexOf("as", true);
@@ -103,13 +91,13 @@ public class Processor {
 
             Logger.println("adpPOS: " + adpPOS.toString());
 
-            processWhereHelper(tfidfResults, answers, adpPOS.getTerm());
+            processWhereHelper(tfidfResults, answers, adpPOS.getTerm(), importantWords);
         } else {
             // case two: question does not contains adposition tag (not given direction), rare case but just in case
             // so in this case, I guess the direction
             String[] towardWords = GrammarLibrary.towardWords;
             for (String towardWord : towardWords) {
-                if (processWhereHelper(tfidfResults, answers, towardWord))
+                if (processWhereHelper(tfidfResults, answers, towardWord, importantWords))
                     break;
             }
         }
@@ -118,11 +106,13 @@ public class Processor {
         return answers.toArray(new String[answers.size()]);
     }
 
-    private static boolean processWhereHelper(SentenceV2[] tfidfResults, ArrayList<String> answers, String adpWord) {
+    private static boolean processWhereHelper(SentenceV2[] tfidfResults, ArrayList<String> answers, String adpWord, String[] importantWords) {
         boolean added = false;
 
         for (SentenceV2 result : tfidfResults) {
-            Logger.println("Searching: " + result.getSentence());
+            if (checkContextValue(result, importantWords))
+                continue;
+
             int indexOfAdp = result.indexPosOf(adpWord, true);
             Logger.println("indexOfAdp in sentence: " + indexOfAdp);
             StringBuilder sb = new StringBuilder();
@@ -200,7 +190,7 @@ public class Processor {
 
         if (indexVerb != -1) {
             POS verbPOS = posTagOfImportantWords[indexVerb];
-            processWhoHelperForVerb(tfidfResults, answers, verbPOS.getTerm(), question);
+            processWhoHelperForVerb(tfidfResults, answers, verbPOS.getTerm(), question, importantWords);
         } else if (indexAdjNoun != -1) {
             processWhoHelperForAdjNoun(tfidfResults, answers, importantWords, indexAdjNoun);
         } else {
@@ -209,9 +199,13 @@ public class Processor {
         return answers.toArray(new String[answers.size()]);
     }
 
-    private static void processWhoHelperForVerb(SentenceV2[] tfidfResults, ArrayList<String> answers, String verbWord, SentenceV2 question) {
+    private static void processWhoHelperForVerb(SentenceV2[] tfidfResults, ArrayList<String> answers, String verbWord, SentenceV2 question, String[] importantWords) {
         for (SentenceV2 result : tfidfResults) {
-            Logger.println("Searching: " + result.getSentence());
+            Logger.println("Checking: " + result.getSentence());
+
+            if (checkContextValue(result, importantWords))
+                continue;
+
             int indexOfVerb = result.indexPosOf(verbWord, true);
             Logger.println("indexOfVerb in sentence: " + indexOfVerb);
             StringBuilder sb = new StringBuilder();
@@ -305,7 +299,9 @@ public class Processor {
 
     private static void processWhoHelperForAdjNoun(SentenceV2[] tfidfResults, ArrayList<String> answers, String[] importantWords, int indexAdjNoun) {
         for (SentenceV2 result : tfidfResults) {
-            Logger.println("Searching: " + result.getSentence());
+            if (checkContextValue(result, importantWords))
+                continue;
+
             int indexOfAdjNoun = result.indexPosOf(importantWords[indexAdjNoun], true);
             Logger.println("indexOfAdjNoun in sentence: " + indexOfAdjNoun);
             StringBuilder sb = new StringBuilder();
@@ -358,8 +354,27 @@ public class Processor {
                     Logger.println("beforeCount: " + beforeCount);
                     Logger.println("afterCount: " + afterCount);
 
-                    before = new ArrayList<>(new HashSet<>(before));
-                    after = new ArrayList<>(new HashSet<>(after));
+                    ArrayList<String> distinct1 = new ArrayList<>();
+
+                    for (String s : before) {
+                        if (!distinct1.contains(s)) {
+                            distinct1.add(s);
+                        }
+                    }
+
+                    before.clear();
+                    before.addAll(distinct1);
+
+                    ArrayList<String> distinct2 = new ArrayList<>();
+
+                    for (String s : after) {
+                        if (!distinct2.contains(s)) {
+                            distinct2.add(s);
+                        }
+                    }
+
+                    after.clear();
+                    after.addAll(distinct2);
 
                     Logger.println("before: " + before.toString());
                     Logger.println("after: " + after.toString());
@@ -394,6 +409,9 @@ public class Processor {
         ArrayList<String> answers = new ArrayList<>();
 
         for (SentenceV2 result : tfidfResults) {
+            if (checkContextValue(result, importantWords))
+                continue;
+
             Logger.println("Processing for \"what\": " + result.getSentence());
             int indexOfPredicate = -1;
 
@@ -449,6 +467,9 @@ public class Processor {
         ArrayList<String> answers = new ArrayList<>();
 
         for (SentenceV2 result : tfidfResults) {
+            if (checkContextValue(result, importantWords))
+                continue;
+
             int indexOfAt = result.indexPosOf("at", true);
             int indexOfOn = result.indexPosOf("on", true);
             int indexOfIn = result.indexPosOf("in", true);
@@ -508,26 +529,7 @@ public class Processor {
             Logger.println("Processing sentence for YesNo: " + sentence);
             boolean containNot = StringUtils.containsWord(sentence, "not");
 
-            int count = 0;
-            int total = 0;
-
-            ArrayList<String> importantWordsInList = new ArrayList<>();
-            Collections.addAll(importantWordsInList, importantWords);
-
-            for (int j = 0; j < result.getPosTags().length; j++) {
-//                if (result.getPosTags()[j].getTerm().equalsIgnoreCase("because")) // conjunction
-//                    break;
-                if (importantWordsInList.contains(result.getPosTags()[j].getTerm())) {
-                    count++;
-                }
-                total++;
-            }
-
-            double percentage = (double) count / (double) total;
-            double percentageOverlap = (double) count / (double) importantWords.length;
-            percentage = (percentage + percentageOverlap) / 2;
-            Logger.println("Context percentage: " + percentage);
-            if (percentage >= 0.5) { // 50% context similar is enough
+            if (!checkContextValue(result, importantWords)) { // 50% context similar is enough
                 if (containNot)
                     answers[0] = "No";
                 else

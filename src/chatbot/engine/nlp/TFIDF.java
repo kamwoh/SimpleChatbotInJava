@@ -114,6 +114,7 @@ public class TFIDF {
             if (i == getTop)
                 break;
             filtered.add(documents.get(sortedIndices[i]));
+            Logger.println((i + 1) + ": " + documents.get(sortedIndices[i]).getSentence());
         }
 
         return filtered.toArray(new SentenceV2[filtered.size()]);
