@@ -1,9 +1,6 @@
 package chatbot.engine;
 
-import chatbot.engine.nlp.POS;
-import chatbot.engine.nlp.Processor;
-import chatbot.engine.nlp.SentenceV2;
-import chatbot.engine.nlp.StringUtils;
+import chatbot.engine.nlp.*;
 import chatbot.engine.nn.model.POSNeuralNetwork;
 
 import java.util.ArrayList;
@@ -27,24 +24,30 @@ public class Chatbot {
     }
 
     public String getReplyV2(String message) {
-        String[] tokenized = Engine.tokenize(message);
-        POS[] posTags = posNeuralNetwork.predictPOS(tokenized);
-        String[] importantWords = Engine.removeUnimportantWords(posTags);
-        boolean isYesNoQuestion = Engine.isYesNoQuestion(tokenized);
-        boolean isQuestion = isYesNoQuestion || Engine.isQuestion(tokenized);
+        String calculated = CalculatorParser.calculate(message);
 
-        SentenceV2 msgSentence = new SentenceV2(message, posTags);
-        memory.add(msgSentence, isQuestion);
+        if (calculated == null) {
+            String[] tokenized = Engine.tokenize(message);
+            POS[] posTags = posNeuralNetwork.predictPOS(tokenized);
+            String[] importantWords = Engine.removeUnimportantWords(posTags);
+            boolean isYesNoQuestion = Engine.isYesNoQuestion(tokenized);
+            boolean isQuestion = isYesNoQuestion || Engine.isQuestion(tokenized);
 
-        if (isQuestion) {
-            String ans = getAnswerV3(msgSentence, importantWords, isYesNoQuestion);
-            if (ans == null || ans.length() == 0)
-                return "It seems like my database doesn't know about your question, can you please tell me more?";
-            else
-                return ans;
+            SentenceV2 msgSentence = new SentenceV2(message, posTags);
+            memory.add(msgSentence, isQuestion);
+
+            if (isQuestion) {
+                String ans = getAnswerV3(msgSentence, importantWords, isYesNoQuestion);
+                if (ans == null || ans.length() == 0)
+                    return "It seems like my database doesn't know about your question, can you please tell me more?";
+                else
+                    return ans;
+            } else {
+                // todo: randomize affirmative answer
+                return "I see!";
+            }
         } else {
-            // todo: randomize affirmative answer
-            return "I see!";
+            return calculated;
         }
     }
 
@@ -72,7 +75,7 @@ public class Chatbot {
                 answers = Processor.processWhat(tfidfResults, sentenceV2, importantWords);
             } else if (message.contains("when")) {
                 answers = Processor.processWhen(tfidfResults, sentenceV2, importantWords);
-            } else if (message.contains("did") || message.contains("do") || message.contains("does")) {
+            } else if (message.contains("did") || message.contains("do") || message.contains("does") || message.contains("is") || message.contains("are")) {
                 answers = Processor.processYesNo(tfidfResults, sentenceV2, importantWords);
             }
 
