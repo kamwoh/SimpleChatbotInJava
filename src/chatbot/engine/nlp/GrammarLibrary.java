@@ -18,7 +18,8 @@ public class GrammarLibrary {
             "by",
             "between",
             "inside",
-            "over"
+            "over",
+            "in"
     };
 
     public static final String[] conjunctions = ("while\n" +
